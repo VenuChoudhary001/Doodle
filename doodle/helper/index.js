@@ -3,29 +3,31 @@ export function degToRad(degrees) {
 }
 
 export class Stack {
-  idx = -1;
+  idx =-1;
 
   constructor() {
     this.items = [];
   }
 
   push(item) {
-    this.idx++;
+    this.idx+=1;
     this.items.push(item);
   }
 
   pop() {
-    if (idx != -1) {
+    if (this.idx != -1) {
       this.items.splice(-1, 1);
       this.idx--;
+      return;
     }
+    console.log("OUT OF BOUNDS")
   }
 
   top() {
     if (top != -1) {
       let ab = this.items[this.idx];
-      this.idx--;
       return ab;
     }
+    return;
   }
 }

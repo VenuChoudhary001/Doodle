@@ -1,13 +1,14 @@
 import React, { useContext } from "react";
 import { BsArrowUpRight,BsEraser } from "react-icons/bs";
-import {BiRectangle,BiRedo,BiUndo,BiSolidPencil,BiFontColor} from "react-icons/bi"
+import {BiRectangle,BiRedo,BiUndo,BiSolidPencil,BiFontColor,BiReset} from "react-icons/bi"
 import GLOBAL_CONTEXT from "@/context";
 import Image from "next/image";
 const Navbar = () => {
-    const {setCurrentTool,currentTool,tool}=useContext(GLOBAL_CONTEXT)
+    const {setCurrentTool,currentTool,undo,redo,resetCanvas,canvasRef}=useContext(GLOBAL_CONTEXT)
     const [showColors,setShowColors]=React.useState(false);
     const updateColor=(color)=>{
-        tool.strokeStyle=color;
+        if(!canvasRef || !canvasRef.current) return;
+        canvasRef.current.getContext("2d").strokeStyle=color;
     }
     const MENU=[
         {
@@ -21,15 +22,6 @@ const Navbar = () => {
         {
             "name":"erase",
             "icon":<BsEraser />
-        },
-        {
-
-            "name":"redo",
-            "icon":<BiRedo />
-        },
-        {
-            "name":"undo",
-            "icon":<BiUndo />
         },
 
     ]
@@ -52,20 +44,13 @@ const Navbar = () => {
             {MENU.map((_item,_idx)=><span key={_item.name} onClick={()=>setCurrentTool(_item.name)} className={`bg-zinc-800 border-2 ${currentTool==_item.name?"border-red-500":"border-gray-700/50"} cursor-pointer max-w-min block p-3 rounded-md shadow}`}>
             {_item.icon}
           </span>)}
-         
-          
-          {/* <span onClick={()=>setCurrentTool("rect")} className={`bg-zinc-800 border-2 ${currentTool=="rect"?"border-red-500":"border-gray-700/50"} cursor-pointer max-w-min block p-3 rounded-md shadow}`}>
-            <BiRectangle />
-          </span>
-          <span className="bg-zinc-800 border-2 border-gray-700/50 cursor-pointer max-w-min block p-3 rounded-md shadow">
-            <BsEraser />
-          </span>
-          <span className="bg-zinc-800 border-2 border-gray-700/50 cursor-pointer max-w-min block p-3 rounded-md shadow">
-            <BiRedo />
-          </span>
-          <span className="bg-zinc-800 border-2 border-gray-700/50 cursor-pointer max-w-min block p-3 rounded-md shadow">
-            <BiUndo />
-          </span> */}
+         <span onClick={undo} className={` relative bg-zinc-800 border-2 cursor-pointer border-gray-700/50 max-w-min block p-3 rounded-md shadow}`}>
+          <BiUndo />
+         </span>
+        <span onClick={resetCanvas} className={` relative bg-zinc-800 border-2 cursor-pointer border-gray-700/50 max-w-min block p-3 rounded-md shadow}`}>
+
+          <BiReset/>
+         </span>
         </nav>
       </main>
     </>
