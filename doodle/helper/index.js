@@ -1,10 +1,16 @@
+import { useState } from "react";
+
 export function degToRad(degrees) {
   return (degrees * Math.PI) / 180;
 }
 
+
+
+
+
 export class Stack {
   idx =-1;
-
+  items=[];
   constructor() {
     this.items = [];
   }
@@ -29,5 +35,11 @@ export class Stack {
       return ab;
     }
     return;
+  }
+
+  empty(){
+    while(this.idx>0){
+      this.pop();
+    }
   }
 }

@@ -5,6 +5,7 @@ import Navbar from "@/components/navbar";
 import GLOBAL_CONTEXT from "@/context";
 import { io } from "socket.io-client";
 import rough from "roughjs/bundled/rough.cjs";
+import Image from "next/image";
 
 const inter = Manrope({ subsets: ["latin"] });
 
@@ -44,15 +45,17 @@ export default function Home() {
   return (
     <>
       <Navbar />
-
+      <div className="absolute top-0 left-0 w-[200px] h-[80px] text-4xl z-[99] mx-5 flex items-center">
+        <Image src={'/3.png'} priority width={278} height={65} className="" />
+        &#10024;
+      </div>
       <canvas
         ref={canvasRef}
         onMouseDown={(e) => onMouseDown(e, currentTool)}
         onMouseUp={onMouseUp}
         onMouseMove={(e) => onMouseMove(e, currentTool)}
-        width={1000}
-        height={1000}
-        className="bg-neutral-900 absolute top-0 -z-1"
+        
+        className="bg-neutral-900 w-full h-full absolute top-0 -z-1"
       />
     </>
   );

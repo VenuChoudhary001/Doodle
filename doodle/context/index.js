@@ -7,13 +7,32 @@ const GLOBAL_CONTEXT = React.createContext();
 
 const generator = rough.generator();
 let s = new Stack();
-let r = new Stack();
 export const Provider = ({ children }) => {
   const canvasRef = React.useRef(null);
   const [currentTool, setCurrentTool] = React.useState("pen");
   const [mouseDown, setMouseDown] = React.useState(true);
   const [roughCanvas, setRoughCanvas] = React.useState(null);
+  const [options,setOptions]=React.useState({
+    stroke:"#fff",
+    lineWidth:3
+  })
+  let prevColor="#fff";
+  const prevCoordinate=useRef({x:undefined,y:undefined})
   const socket = useRef(null);
+
+  const captureState=()=>{
+    let ctx = canvasRef.current.getContext("2d");
+    let imageData = ctx.getImageData(
+      0,
+      0,
+      canvasRef.current.width,
+      canvasRef.current.height
+    );
+    s.push(imageData);
+  }
+
+
+
   const drawRectangle = (e) => {
     let data = {
       tool: "rect",
@@ -21,23 +40,19 @@ export const Provider = ({ children }) => {
       clientY: e.clientY,
     };
     if (roughCanvas) {
-      let rect = generator.rectangle(e.clientX, e.clientY, 100, 100, {
-        stroke: "#fff",
-      });
+      let rect = generator.rectangle(e.clientX, e.clientY, 100, 100, {...options});
       roughCanvas.draw(rect);
+      captureState();
     }
   };
   const eraser = (e) => {
-    canvasRef.current.getContext("2d").beginPath();
-    canvasRef.current.getContext("2d").strokeStyle = "rgba(23 23 23 / 1)";
-    canvasRef.current.getContext("2d").moveTo(e.clientX, e.clientY);
-    canvasRef.current.getContext("2d").lineWidth = 10;
+    prevColor=options.stroke;
+    setOptions({
+      ...options,
+      stroke:"rgba(23 23 23 / 1)",
+      lineWidth:3
+    })
     setMouseDown(false);
-    let data = {
-      clientX: e.clientX,
-      clientY: e.clientY,
-      tool: currentTool,
-    };
   };
 
   const drawPath = (e) => {
@@ -48,48 +63,42 @@ export const Provider = ({ children }) => {
   };
 
   const drawPen = (e) => {
-    canvasRef.current.getContext("2d").beginPath();
-    canvasRef.current.getContext("2d").moveTo(e.clientX, e.clientY);
-    setMouseDown(false);
+    if(canvasRef && canvasRef.current){
+
+      canvasRef.current.getContext("2d").beginPath();
+      canvasRef.current.getContext("2d").moveTo(e.clientX, e.clientY);
+      setMouseDown(false);
+      prevCoordinate.current.x=e.clientX;
+      prevCoordinate.current.y=e.clientY;
+    }
   };
 
   const resetCanvas = () => {
     let ctx = canvasRef.current.getContext("2d");
     ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+    s.empty();
   };
 
   const onMouseMove = (e, tool) => {
     if ((tool == "pen" || tool == "erase") && !mouseDown) {
-      if (canvasRef.current) {
+      if (roughCanvas) {
         let ctx = canvasRef.current.getContext("2d");
         ctx.lineWidth = 3;
-
-        ctx.lineTo(e.clientX, e.clientY);
-        ctx.stroke();
+        roughCanvas.line(prevCoordinate.current.x,prevCoordinate.current.y,e.clientX, e.clientY, {...options});
+        prevCoordinate.current.x=e.clientX;
+        prevCoordinate.current.y=e.clientY;
       }
     }
   };
   const undo = () => {
     if (canvasRef && canvasRef.current) {
       let ctx = canvasRef.current.getContext("2d");
-      if (s.idx > 0) {
-        r.push(s.top());
-      }
       s.pop();
-      if (s.idx > 0) ctx.putImageData(s.top(), 0, 0);
+      if (s.idx >=0) ctx.putImageData(s.top(), 0, 0);
       else resetCanvas();
     }
   };
 
-  const redo = () => {
-    if (canvasRef && canvasRef.current) {
-      let ctx = canvasRef.current.getContext("2d");
-      if (r.idx > 0) {
-        ctx.putImageData(r.top(), 0, 0);
-        r.pop();
-      } else resetCanvas();
-    }
-  };
   const onMouseUp = (e) => {
     console.log(s);
     setMouseDown(true);
@@ -104,12 +113,13 @@ export const Provider = ({ children }) => {
       );
 
       socket.current.emit("end-path", imageData);
-      s.push(imageData);
+      captureState();
       console.log("fired end path");
+      prevCoordinate.current.x=undefined;
+      prevCoordinate.current.y=undefined;
     }
     if (currentTool == "erase") {
-      tool.lineWidth = 1;
-      tool.strokeStyle = "white";
+       setOptions({...options,stroke:prevColor})
     }
   };
 
@@ -154,7 +164,8 @@ export const Provider = ({ children }) => {
         resetCanvas,
         drawPath,
         undo,
-        redo,
+        setOptions,
+        options
       }}
     >
       {children}

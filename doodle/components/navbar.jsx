@@ -1,14 +1,14 @@
 import React, { useContext } from "react";
 import { BsArrowUpRight,BsEraser } from "react-icons/bs";
-import {BiRectangle,BiRedo,BiUndo,BiSolidPencil,BiFontColor,BiReset} from "react-icons/bi"
+import {BiRectangle,BiScreenshot,BiUndo,BiSolidPencil,BiFontColor,BiReset} from "react-icons/bi"
 import GLOBAL_CONTEXT from "@/context";
 import Image from "next/image";
 const Navbar = () => {
-    const {setCurrentTool,currentTool,undo,redo,resetCanvas,canvasRef}=useContext(GLOBAL_CONTEXT)
+    const {setCurrentTool,currentTool,undo,setOptions,options,resetCanvas,canvasRef}=useContext(GLOBAL_CONTEXT)
     const [showColors,setShowColors]=React.useState(false);
     const updateColor=(color)=>{
         if(!canvasRef || !canvasRef.current) return;
-        canvasRef.current.getContext("2d").strokeStyle=color;
+         setOptions({...options,stroke:color})
     }
     const MENU=[
         {
@@ -51,6 +51,11 @@ const Navbar = () => {
 
           <BiReset/>
          </span>
+
+         {/* <span  className={` relative bg-zinc-800 border-2 cursor-pointer border-gray-700/50 max-w-min block p-3 rounded-md shadow}`}>
+
+          <BiScreenshot/>
+         </span> */}
         </nav>
       </main>
     </>
